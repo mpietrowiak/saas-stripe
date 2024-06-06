@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { UploadFileResponse } from "@xixixao/uploadstuff";
 import { UploadDropzone } from "@xixixao/uploadstuff/react";
 import { useMutation } from "convex/react";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import UploadThumbnailPreview from "../upload-thumbnail-preview";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
@@ -23,14 +23,31 @@ export default function CreatePage() {
   });
   const createThubmnail = useMutation(api.thumbnails.createThumbnail);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  //   const saveStorageId = useMutation(api.files.saveStorageId);
   const [title, setTitle] = useState("");
   const [imageA, setImageA] = useState("");
   const [imageB, setImageB] = useState("");
 
-  //   const saveAfterUpload = async (uploaded: UploadFileResponse[]) => {
-  //     await saveStorageId({ storageId: (uploaded[0].response as any).storageId });
-  //   };
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrors({
+      title: !title ? "Please fill in the title" : "",
+      imageA: !imageA ? "Please upload an image for A" : "",
+      imageB: !imageB ? "Please upload an image for B" : "",
+    });
+    if (!title || !imageA || !imageB) {
+      toast({
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    const thumbnailId = await createThubmnail({
+      aImage: imageA,
+      bImage: imageB,
+      title: "Test Thumbnail",
+    });
+    router.push(`/thumbnails/${thumbnailId}`);
+  };
 
   return (
     <div className="my-16">
@@ -41,64 +58,7 @@ export default function CreatePage() {
         thumbnail and help you redesign or pick the best options.
       </p>
 
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-
-          // const form = e.target as HTMLFormElement;
-          // const formData = new FormData(form);
-          // const title = formData.get("title") as string;
-
-          setErrors({
-            title: "",
-            imageA: "",
-            imageB: "",
-          });
-
-          if (!title) {
-            setErrors((currentErrors) => ({
-              ...(currentErrors ?? {}),
-              title: "Please fill in the title",
-            }));
-          }
-
-          if (!imageA) {
-            setErrors((currentErrors) => ({
-              ...(currentErrors ?? {}),
-              imageA: "Please upload an image for A",
-            }));
-          }
-
-          if (!imageB) {
-            setErrors((currentErrors) => ({
-              ...(currentErrors ?? {}),
-              imageB: "Please upload an image for B",
-            }));
-          }
-
-          console.log("title", title);
-          console.log("imageA", imageA);
-          console.log("imageB", imageB);
-
-          if (!title || !imageA || !imageB) {
-            toast({
-              description: "Please fill in all fields",
-              variant: "destructive",
-            });
-            return;
-          }
-
-          const thumbnailId = await createThubmnail({
-            aImage: imageA,
-            bImage: imageB,
-            title: "Test Thumbnail",
-          });
-
-          // form.reset();
-
-          router.push(`/thumbnails/${thumbnailId}`);
-        }}
-      >
+      <form onSubmit={handleSubmit}>
         <Label htmlFor="title" className="mb-4 block">
           Your Test Title
         </Label>
