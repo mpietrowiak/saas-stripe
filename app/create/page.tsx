@@ -6,12 +6,13 @@ import { UploadFileResponse } from "@xixixao/uploadstuff";
 import { UploadDropzone } from "@xixixao/uploadstuff/react";
 import { useMutation } from "convex/react";
 import { FormEvent, useState } from "react";
-import UploadThumbnailPreview from "../upload-thumbnail-preview";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
+import ThumbnailPreview from "@/components/thumbnail-preview";
+import SideBySideThumbnails from "@/components/side-by-side-thumbnails";
 
 export default function CreatePage() {
   const router = useRouter();
@@ -71,80 +72,80 @@ export default function CreatePage() {
           required
         />
 
-        <div className="grid grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Test Image A</h2>
+        <SideBySideThumbnails
+          imageA={
+            <>
+              <div className="w-80 border opacity-75">
+                <UploadDropzone
+                  className={() =>
+                    clsx("p-8 w-full", {
+                      "border border-red-500": errors?.imageA,
+                    })
+                  }
+                  uploadUrl={generateUploadUrl}
+                  fileTypes={{
+                    "image/*": [".png", ".gif", ".jpeg", ".jpg"],
+                  }}
+                  onUploadComplete={async (uploaded: UploadFileResponse[]) => {
+                    console.log("uploaded", uploaded);
+                    setImageA((uploaded[0].response as any).storageId);
+                    setErrors((errors) => ({
+                      ...errors,
+                      imageA: "",
+                    }));
+                  }}
+                  onUploadError={(error: unknown) => {
+                    // Do something with the error.
+                    alert(`ERROR! ${error}`);
+                  }}
+                />
+              </div>
 
-            <div className="w-80 border opacity-75">
-              <UploadDropzone
-                className={() =>
-                  clsx("p-8 w-full", {
-                    "border border-red-500": errors?.imageA,
-                  })
-                }
-                uploadUrl={generateUploadUrl}
-                fileTypes={{
-                  "image/*": [".png", ".gif", ".jpeg", ".jpg"],
-                }}
-                onUploadComplete={async (uploaded: UploadFileResponse[]) => {
-                  console.log("uploaded", uploaded);
-                  setImageA((uploaded[0].response as any).storageId);
-                  setErrors((errors) => ({
-                    ...errors,
-                    imageA: "",
-                  }));
-                }}
-                onUploadError={(error: unknown) => {
-                  // Do something with the error.
-                  alert(`ERROR! ${error}`);
-                }}
-              />
-            </div>
+              {errors?.imageA && (
+                <div className={"text-red-500"}>{errors?.imageA}</div>
+              )}
 
-            {errors?.imageA && (
-              <div className={"text-red-500"}>{errors?.imageA}</div>
-            )}
+              {imageA && <ThumbnailPreview storageId={imageA} />}
+            </>
+          }
+          imageB={
+            <>
+              <div className="w-80 border opacity-75">
+                <UploadDropzone
+                  className={() =>
+                    clsx("p-8 w-full", {
+                      "border border-red-500": errors?.imageA,
+                    })
+                  }
+                  uploadUrl={generateUploadUrl}
+                  fileTypes={{
+                    "image/*": [".png", ".gif", ".jpeg", ".jpg"],
+                  }}
+                  onUploadComplete={async (uploaded: UploadFileResponse[]) => {
+                    console.log("uploaded", uploaded);
+                    setImageB((uploaded[0].response as any).storageId);
+                    setErrors((errors) => ({
+                      ...errors,
+                      imageB: "",
+                    }));
+                  }}
+                  onUploadError={(error: unknown) => {
+                    // Do something with the error.
+                    alert(`ERROR! ${error}`);
+                  }}
+                />
+              </div>
 
-            {imageA && <UploadThumbnailPreview storageId={imageA} />}
-          </div>
+              {errors?.imageB && (
+                <div className={"text-red-500"}>{errors?.imageB}</div>
+              )}
 
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Test Image B</h2>
+              {imageB && <ThumbnailPreview storageId={imageB} />}
+            </>
+          }
+        />
 
-            <div className="w-80 border opacity-75">
-              <UploadDropzone
-                className={() =>
-                  clsx(" p-8 w-full", {
-                    "border border-red-500": errors?.imageB,
-                  })
-                }
-                uploadUrl={generateUploadUrl}
-                fileTypes={{
-                  "image/*": [".png", ".gif", ".jpeg", ".jpg"],
-                }}
-                onUploadComplete={async (uploaded: UploadFileResponse[]) => {
-                  console.log("uploaded", uploaded);
-                  setImageB((uploaded[0].response as any).storageId);
-                  setErrors((errors) => ({
-                    ...errors,
-                    imageB: "",
-                  }));
-                }}
-                onUploadError={(error: unknown) => {
-                  // Do something with the error.
-                  alert(`ERROR! ${error}`);
-                }}
-              />
-            </div>
-
-            {errors?.imageB && (
-              <div className={"text-red-500"}>{errors?.imageB}</div>
-            )}
-
-            {imageB && <UploadThumbnailPreview storageId={imageB} />}
-          </div>
-          <Button className="min-w-0 w-auto">Create Thumbnail test</Button>
-        </div>
+        <Button className="mt-8">Create Thumbnail test</Button>
       </form>
     </div>
   );

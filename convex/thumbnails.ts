@@ -54,7 +54,6 @@ export const getThumbnail = query({
     thumbnailId: v.id("thumbnails"),
   },
   handler: async (ctx, args) => {
-    console.log("args: ", args);
     const thumbnail = await ctx.db.get(args.thumbnailId);
     return thumbnail;
   },
