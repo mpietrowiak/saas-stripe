@@ -3,22 +3,28 @@
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { UploadFileResponse } from "@xixixao/uploadstuff";
-import { UploadButton, UploadDropzone } from "@xixixao/uploadstuff/react";
-import { useMutation, useQuery } from "convex/react";
+import { UploadDropzone } from "@xixixao/uploadstuff/react";
+import { useMutation } from "convex/react";
 import { useState } from "react";
-import Image from "next/image";
 import UploadThumbnailPreview from "../upload-thumbnail-preview";
 import { useToast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import clsx from "clsx";
+import { useRouter } from "next/navigation";
 
 export default function CreatePage() {
+  const router = useRouter();
   const { toast } = useToast();
-  const [errors, setErrors] = useState<string | null>(null);
+  const [errors, setErrors] = useState({
+    title: "",
+    imageA: "",
+    imageB: "",
+  });
   const createThubmnail = useMutation(api.thumbnails.createThumbnail);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   //   const saveStorageId = useMutation(api.files.saveStorageId);
+  const [title, setTitle] = useState("");
   const [imageA, setImageA] = useState("");
   const [imageB, setImageB] = useState("");
 
@@ -32,47 +38,89 @@ export default function CreatePage() {
 
       <p className="text-lg max-w-md mb-8">
         Create your test so that other people can vote on their favorite
-        thumbnail and help you redesign or pickt he best options.
+        thumbnail and help you redesign or pick the best options.
       </p>
 
       <form
         onSubmit={async (e) => {
           e.preventDefault();
 
-          const form = e.target as HTMLFormElement;
-          const formData = new FormData(form);
-          const title = formData.get("title") as string;
+          // const form = e.target as HTMLFormElement;
+          // const formData = new FormData(form);
+          // const title = formData.get("title") as string;
+
+          setErrors({
+            title: "",
+            imageA: "",
+            imageB: "",
+          });
+
+          if (!title) {
+            setErrors((currentErrors) => ({
+              ...(currentErrors ?? {}),
+              title: "Please fill in the title",
+            }));
+          }
+
+          if (!imageA) {
+            setErrors((currentErrors) => ({
+              ...(currentErrors ?? {}),
+              imageA: "Please upload an image for A",
+            }));
+          }
+
+          if (!imageB) {
+            setErrors((currentErrors) => ({
+              ...(currentErrors ?? {}),
+              imageB: "Please upload an image for B",
+            }));
+          }
+
+          console.log("title", title);
+          console.log("imageA", imageA);
+          console.log("imageB", imageB);
 
           if (!title || !imageA || !imageB) {
-            setErrors("please fill in all fields on the page");
             toast({
-              title: "Form Errors",
-              description: "Please fill in all fields on the page",
+              description: "Please fill in all fields",
               variant: "destructive",
             });
             return;
           }
 
-          await createThubmnail({
+          const thumbnailId = await createThubmnail({
             aImage: imageA,
             bImage: imageB,
             title: "Test Thumbnail",
           });
+
+          // form.reset();
+
+          router.push(`/thumbnails/${thumbnailId}`);
         }}
       >
         <Label htmlFor="title" className="mb-4 block">
           Your Test Title
         </Label>
-        <Input id="title" type="text" className="mb-8" required />
+        <Input
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          id="title"
+          type="text"
+          className="mb-8"
+          required
+        />
 
         <div className="grid grid-cols-2 gap-8">
           <div>
             <h2 className="text-2xl font-bold mb-4">Test Image A</h2>
 
-            <div className=" w-80 border opacity-75">
+            <div className="w-80 border opacity-75">
               <UploadDropzone
                 className={() =>
-                  clsx(" p-8 w-full", { "border border-red-500": errors })
+                  clsx("p-8 w-full", {
+                    "border border-red-500": errors?.imageA,
+                  })
                 }
                 uploadUrl={generateUploadUrl}
                 fileTypes={{
@@ -81,6 +129,10 @@ export default function CreatePage() {
                 onUploadComplete={async (uploaded: UploadFileResponse[]) => {
                   console.log("uploaded", uploaded);
                   setImageA((uploaded[0].response as any).storageId);
+                  setErrors((errors) => ({
+                    ...errors,
+                    imageA: "",
+                  }));
                 }}
                 onUploadError={(error: unknown) => {
                   // Do something with the error.
@@ -88,6 +140,10 @@ export default function CreatePage() {
                 }}
               />
             </div>
+
+            {errors?.imageA && (
+              <div className={"text-red-500"}>{errors?.imageA}</div>
+            )}
 
             {imageA && <UploadThumbnailPreview storageId={imageA} />}
           </div>
@@ -98,7 +154,9 @@ export default function CreatePage() {
             <div className="w-80 border opacity-75">
               <UploadDropzone
                 className={() =>
-                  clsx(" p-8 w-full", { "border border-red-500": errors })
+                  clsx(" p-8 w-full", {
+                    "border border-red-500": errors?.imageB,
+                  })
                 }
                 uploadUrl={generateUploadUrl}
                 fileTypes={{
@@ -107,6 +165,10 @@ export default function CreatePage() {
                 onUploadComplete={async (uploaded: UploadFileResponse[]) => {
                   console.log("uploaded", uploaded);
                   setImageB((uploaded[0].response as any).storageId);
+                  setErrors((errors) => ({
+                    ...errors,
+                    imageB: "",
+                  }));
                 }}
                 onUploadError={(error: unknown) => {
                   // Do something with the error.
@@ -115,9 +177,13 @@ export default function CreatePage() {
               />
             </div>
 
+            {errors?.imageB && (
+              <div className={"text-red-500"}>{errors?.imageB}</div>
+            )}
+
             {imageB && <UploadThumbnailPreview storageId={imageB} />}
           </div>
-          <Button>Create Thumbnail test</Button>
+          <Button className="min-w-0 w-auto">Create Thumbnail test</Button>
         </div>
       </form>
     </div>
