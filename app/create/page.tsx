@@ -44,7 +44,7 @@ export default function CreatePage() {
     const thumbnailId = await createThubmnail({
       aImage: imageA,
       bImage: imageB,
-      title: "Test Thumbnail",
+      title: title,
     });
     router.push(`/thumbnails/${thumbnailId}`);
   };

@@ -48,3 +48,14 @@ export const getThumbnailUrl = query({
     return ctx.storage.getUrl(args.storageId);
   },
 });
+
+export const getThumbnail = query({
+  args: {
+    thumbnailId: v.id("thumbnails"),
+  },
+  handler: async (ctx, args) => {
+    console.log("args: ", args);
+    const thumbnail = await ctx.db.get(args.thumbnailId);
+    return thumbnail;
+  },
+});

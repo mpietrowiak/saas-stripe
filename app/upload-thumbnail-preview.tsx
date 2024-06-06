@@ -1,5 +1,6 @@
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
+import Image from "next/image";
 import { useState } from "react";
 
 export default function UploadThumbnailPreview({
@@ -8,5 +9,5 @@ export default function UploadThumbnailPreview({
   storageId: string;
 }) {
   const url = useQuery(api.thumbnails.getThumbnailUrl, { storageId });
-  return url && <img src={url} alt={url} width={200} height={200} />;
+  return url && <Image src={url} alt={url} width={200} height={200} />;
 }
